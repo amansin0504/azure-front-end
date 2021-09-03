@@ -31,11 +31,9 @@ docker-build:
     - docker:dind
   before_script:
     - apk add --no-cache curl jq python3 py3-pip
-    - pip install awscli
     - echo $DOCKER_REGISTRY
-    - echo $AWS_DEFAULT_REGION
     - echo $IMAGE_TAG
-    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - $REGISTRY_PASSWORD | docker login --username $REGISTRY_USERNAME --password-stdin $DOCKER_REGISTRY
   script:
     - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
@@ -46,8 +44,8 @@ deployment:
   tags:
     - docker
   before_script:
-    - aws eks update-kubeconfig --name app-first-sec
     - kubectl version
+    - kubectl config view
   script:
     - kubectl set image deployment/front-end front-end=$IMAGE_TAG -n sock-shop
   when: manual
